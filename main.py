@@ -94,12 +94,19 @@ class Neural_Network:
             layer.best_biases  = layer.biases.copy()
     
     def activate(self,X):
+        if type(X) != np.ndarray:
+            X = np.array(X)
+            if len(X.shape) == 1:
+                X = X.reshape(1,X.shape[0])
         if X.shape[1] != self.sizes[0]:
             raise ValueError(f"Target inputs have a different shape from NN inputs: {X.shape} vs {num_inputs}") # validating X
         mailman = X # it's called the mailman because it passes the values from one object to the next
         for layer in self.layers:
             layer.forward(mailman)
             mailman = layer.output
+
+        self.best_node = np.argmax(mailman)
+        self.confidence = np.floor( max(mailman[0]) * 10000 ) / 100 
         return mailman
     
     def update(self,loss,*,verbose=False):
@@ -122,7 +129,8 @@ class Neural_Network:
                 data.extend((str(layer.best_weights),"\n\n",str(layer.best_biases),"\n\n"))
             del data[-2:]
             sf.writelines(data)
-    def load(file_name)
+    def load(file_name):
+        pass
 
 class generation:
     def __init__(self,size,network):
@@ -228,17 +236,10 @@ while True:
             usr_input = usr_input + "0"*(num_inputs-len(usr_input))
         if usr_input[:3] == "end":
             break
-        nums = np.array([list(map(int,list(usr_input)[:num_inputs]))])
+        nums = list(map(int,list(usr_input)[:num_inputs]))
     except ValueError:
         print("Error: Please enter an integer.\n")
         continue
 
-    AI_answer = NN.activate(nums)
-    best_node = np.argmax(AI_answer)
-    confidence = np.floor( max(AI_answer[0]) * 10000 ) / 100 
-    print(f"Neural network thinks that the number is '{options[best_node]}' (confidence = {confidence}%).")
-
-NN.save("Test_file")
-
-    
-
+    NN.activate(nums)
+    print(f"Neural network thinks that the number is '{options[NN.best_node]}' (confidence = {NN.confidence}%).")
