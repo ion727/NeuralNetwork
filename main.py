@@ -67,7 +67,7 @@ class Neural_Network:
             return negative_log_probs
     
 
-    def create(self,*args,ManualInputWeights=None):
+    def create(self,*args):
         if len(args) != 2:
             raise ValueError(f"create((layers), (activations)) expected 2 positional arguments, got {len(args)}")
         self.sizes, self.activations = args
@@ -83,7 +83,7 @@ class Neural_Network:
 
         #Coding begins!
         self.layers = []
-        for i in range(len(self.sizes)-1):        # minus 1 bc input layer doesnt require an object
+        for i in range(len(self.sizes)-2):        # minus 1 bc input layer doesnt require an object
             layer = self.neuron_layer(self.sizes[i], self.sizes[i+1],self.activations[i])
             self.layers.append(layer)
         self.layers.append(self.neuron_layer(self.sizes[-2], self.sizes[-1],self.activations[-1])) # create a list w all the layers
@@ -94,7 +94,7 @@ class Neural_Network:
             layer.best_biases  = layer.biases.copy()
     
     def activate(self,X):
-        if X.shape[1] != self.input_size:
+        if X.shape[1] != self.sizes[0]:
             raise ValueError(f"Target inputs have a different shape from NN inputs: {X.shape} vs {num_inputs}") # validating X
         mailman = X # it's called the mailman because it passes the values from one object to the next
         for layer in self.layers:
@@ -108,12 +108,21 @@ class Neural_Network:
             for layer in self.layers: # update all w/b
                 layer.best_weights = layer.weights.copy()
                 layer.best_biases  = layer.biases.copy()
+            self.lowest_loss = loss
             if verbose:
                 print(f"new set of weights found, iteration:{self.iteration} loss:{loss}")
         else:
             for layer in self.layers: # revert all w/b
                 layer.weights = layer.best_weights.copy()
                 layer.biases  = layer.best_biases.copy()
+    def save(self,file_name):
+        with open(file_name,"w") as sf:
+            data = []
+            for layer in NN.layers:
+                data.extend((str(layer.best_weights),"\n\n",str(layer.best_biases),"\n\n"))
+            del data[-2:]
+            sf.writelines(data)
+    def load(file_name)
 
 class generation:
     def __init__(self,size,network):
@@ -157,14 +166,14 @@ for i in X:
         y.append(1)
 y = np.array(y)
 
-#print(X,y,sep="\n\n"); exit() # Use to check on X and y
+print(X,X.shape,y,y.shape,sep="\n\n"); #exit() # Use to check on X and y
 
 options = ["Mostly white", "equally black and white", "mostly black"] 
 
 #================================================================================================================================
 # network here
 NN = Neural_Network()
-NN.create((num_inputs,4,3),(NN.activation_relu(),NN.activation_relu(), NN.activation_softmax()))
+NN.create((num_inputs,4,4,num_outputs),(NN.activation_relu(),NN.activation_relu(), NN.activation_softmax()))
 
 
 loss_function = NN.loss_cce()
@@ -176,11 +185,8 @@ best_layer2_biases  = NN.layers[1].biases.copy()
 best_layer3_weights = NN.layers[2].weights.copy()
 best_layer3_biases  = NN.layers[2].biases.copy() 
 
-for index, i in enumerate(NN.layers):
-    print(i, i.weights,"\n\n\n")
 i = 0
-while lowest_loss > 1.01e-07 and i < 1000000: #figure out how to implement this loop
-    print(i)
+while NN.lowest_loss > 1.01e-07 and i < 100000: #figure out how to implement this loop
     rd_num = randint(-1,1)
     NN.layers[0].weights += (np.zeros((num_inputs,4)) + rd_num)  if i%12==0  else (0.5 * np.random.randn(num_inputs,4))
     NN.layers[0].biases  += (np.zeros((1,4)) + rd_num)           if i%12==1 else (0.5 * np.random.randn(1,4))
@@ -194,7 +200,7 @@ while lowest_loss > 1.01e-07 and i < 1000000: #figure out how to implement this 
     predictions = np.argmax(output, axis=1)
     accuracy = np.mean(predictions==y)
 
-    if loss < lowest_loss:
+    if loss < NN.lowest_loss:
         print(f"new set of weights found, iteration:{i} loss:{loss} acc:{accuracy}\r")
         best_layer1_weights = NN.layers[0].weights.copy()
         best_layer1_biases  = NN.layers[0].biases.copy()
@@ -202,7 +208,7 @@ while lowest_loss > 1.01e-07 and i < 1000000: #figure out how to implement this 
         best_layer2_biases  = NN.layers[1].biases.copy()
         best_layer3_weights = NN.layers[2].weights.copy()
         best_layer3_biases  = NN.layers[2].biases.copy()
-        lowest_loss = loss
+        NN.lowest_loss = loss
     else:
         NN.layers[0].weights = best_layer1_weights.copy()
         NN.layers[0].biases  = best_layer1_biases.copy() 
@@ -222,7 +228,7 @@ while True:
             usr_input = usr_input + "0"*(num_inputs-len(usr_input))
         if usr_input[:3] == "end":
             break
-        nums = list(map(int,list(usr_input)[:num_inputs]))
+        nums = np.array([list(map(int,list(usr_input)[:num_inputs]))])
     except ValueError:
         print("Error: Please enter an integer.\n")
         continue
@@ -232,12 +238,7 @@ while True:
     confidence = np.floor( max(AI_answer[0]) * 10000 ) / 100 
     print(f"Neural network thinks that the number is '{options[best_node]}' (confidence = {confidence}%).")
 
-with open("save_file","w") as sf:
-    data = []
-    for layer in NN.layers:
-        data.extend((layer.best_weights,"\n",layer.best_biases,"\n"))
-    del data[-1]
-    sf.writelines(data)
+NN.save("Test_file")
 
     
 
