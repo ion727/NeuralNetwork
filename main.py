@@ -14,7 +14,7 @@ class Neural_Network:
             self.best_biases  = None
             self.n_inputs = n_inputs
             self.n_neurons = n_neurons
-            self.weights = np.zeros(n_inputs, n_neurons)
+            self.weights = np.zeros((n_inputs, n_neurons))
             self.biases = np.zeros((1, n_neurons))
             self.activation = activation
         
@@ -27,17 +27,16 @@ class Neural_Network:
                 raise ValueError(f"set_weights expected array of shape {self.weights.shape}, got {weights.shape}")
             self.weights = weights
             self.best_weights = weights
-                
+            
         def set_biases(self,biases): # Manually set w/b
             if type(X) != np.ndarray:
                 biases = np.array(X)
             if len(biases.shape) == 1:
-                biases = biases.reshape(1,biases.shape[0]) # Flexibility for any sort of list to be passed without errors.
+                biases = biases.reshape(1,biases.shape[0])
             if biases.shape != self.biases.shape:
                 raise ValueError(f"set_biases expected array of shape {self.biases.shape}, got {biases.shape}")
             self.biases = biases
             self.best_biases = biases
-
         def mutate(self):
             self.weights += 0.10*np.random.randn(self.n_inputs, self.n_neurons)
             self.biases += 0.10*np.random.randn(1, self.n_neurons)
@@ -114,7 +113,6 @@ class Neural_Network:
         for layer in self.layers:
             layer.forward(mailman)
             mailman = layer.output
-
         self.best_node = np.argmax(mailman)
         self.confidence = np.floor( max(mailman[0]) * 10000 ) / 100 
         return mailman
@@ -161,15 +159,15 @@ class Neural_Network:
             
 
 class generation:
-    def __init__(self,size,network):
+    def __init__(self,size,network,*,loss_function=None):
         self.size = size
         self.network = network
-        # define generation best w/b by creating a list w all the layers and their weights/biases.
+        self.best_generation_weights = [layer.best_weights for layer in network.layers]
+        self.best_generation_biases = [layer.best_biases for layer in network.layers]
     # calculate loss for all the layers
     # keep the best w/b and assign to all the networks
     # mutate
     # r&r
-
 
 #================================================================================================================================
 # defining variables/parameters
@@ -237,7 +235,7 @@ while NN.lowest_loss > 1.01e-07 and i < 100000: #figure out how to implement thi
     accuracy = np.mean(predictions==y)
 
     if loss < NN.lowest_loss:
-        print(f"new set of weights found, iteration:{i} loss:{loss} acc:{accuracy}",end=f"{" "*50}\r")
+        print(f"new set of weights found, iteration:{i} loss:{loss} acc:{accuracy}",end=f"{' '*50}\r")
         best_layer1_weights = NN.layers[0].weights.copy()
         best_layer1_biases  = NN.layers[0].biases.copy()
         best_layer2_weights = NN.layers[1].weights.copy()
@@ -254,7 +252,7 @@ while NN.lowest_loss > 1.01e-07 and i < 100000: #figure out how to implement thi
         NN.layers[2].biases  = best_layer3_biases.copy() 
     i+=1
     if i % 20000 == 0:
-        print(f"training...(iteration : {i})",end=f"{" "*50}\r")
+        print(f"training...(iteration : {i})",end=f"{' '*50}\r")
 
 brk = False
 while True:
