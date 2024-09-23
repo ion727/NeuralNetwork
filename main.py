@@ -14,12 +14,30 @@ class Neural_Network:
             self.best_biases  = None
             self.n_inputs = n_inputs
             self.n_neurons = n_neurons
-            self.weights = 0.10*np.random.randn(n_inputs, n_neurons)
+            self.weights = np.zeros(n_inputs, n_neurons)
             self.biases = np.zeros((1, n_neurons))
             self.activation = activation
-        def set(self,weights,biases): # Manually set w/b
+        
+        def set_weights(self,weights): # Manually set w/b
+            if type(X) != np.ndarray:
+                weights = np.array(X)
+            if len(weights.shape) == 1:
+                weights = weights.reshape(1,weights.shape[0]) # Flexibility for any sort of list to be passed without errors.
+            if weights.shape != self.weights.shape:
+                raise ValueError(f"set_weights expected array of shape {self.weights.shape}, got {weights.shape}")
+            self.weights = weights
             self.best_weights = weights
+                
+        def set_biases(self,biases): # Manually set w/b
+            if type(X) != np.ndarray:
+                biases = np.array(X)
+            if len(biases.shape) == 1:
+                biases = biases.reshape(1,biases.shape[0]) # Flexibility for any sort of list to be passed without errors.
+            if biases.shape != self.biases.shape:
+                raise ValueError(f"set_biases expected array of shape {self.biases.shape}, got {biases.shape}")
+            self.biases = biases
             self.best_biases = biases
+
         def mutate(self):
             self.weights += 0.10*np.random.randn(self.n_inputs, self.n_neurons)
             self.biases += 0.10*np.random.randn(1, self.n_neurons)
@@ -29,7 +47,6 @@ class Neural_Network:
         def activate(self,input):
             self.activation.forward(input)
             self.output = self.activation.output
-
 
     class activation_step:
         def forward(self, inputs):
@@ -47,7 +64,6 @@ class Neural_Network:
             exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
             probs = exp_values / np.sum(exp_values, axis=1, keepdims=True)
             self.output = probs
-        
 
     class loss:
         def calculate(self, output, y):
@@ -65,30 +81,24 @@ class Neural_Network:
                 correct_confidences = np.sum(y_pred_clipped*y_true, axis=1)
             negative_log_probs = -np.log(correct_confidences)
             return negative_log_probs
-    
 
     def create(self,*args):
         if len(args) != 2:
             raise ValueError(f"create((layers), (activations)) expected 2 positional arguments, got {len(args)}")
         self.sizes, self.activations = args
-        
         # Validation
         # Ensuring logical amounts have been entered
         for num in self.sizes:
             if type(num) != int:
                 raise ValueError(f"function create() expected int, got {type(num)}.")
-
             if num < 1:
                 raise ValueError("Layer size cannot be less than 1.")
-
         #Coding begins!
         self.layers = []
         for i in range(len(self.sizes)-2):        # minus 1 bc input layer doesnt require an object
             layer = self.neuron_layer(self.sizes[i], self.sizes[i+1],self.activations[i])
             self.layers.append(layer)
         self.layers.append(self.neuron_layer(self.sizes[-2], self.sizes[-1],self.activations[-1])) # create a list w all the layers
-
-
         for layer in self.layers: # prepare to evolve
             layer.best_weights = layer.weights.copy()
             layer.best_biases  = layer.biases.copy()
@@ -96,8 +106,8 @@ class Neural_Network:
     def activate(self,X):
         if type(X) != np.ndarray:
             X = np.array(X)
-            if len(X.shape) == 1:
-                X = X.reshape(1,X.shape[0])
+        if len(X.shape) == 1:
+            X = X.reshape(1,X.shape[0]) # Flexibility for any sort of list to be passed without errors.
         if X.shape[1] != self.sizes[0]:
             raise ValueError(f"Target inputs have a different shape from NN inputs: {X.shape} vs {num_inputs}") # validating X
         mailman = X # it's called the mailman because it passes the values from one object to the next
@@ -129,8 +139,26 @@ class Neural_Network:
                 data.extend((str(layer.best_weights),"\n\n",str(layer.best_biases),"\n\n"))
             del data[-2:]
             sf.writelines(data)
-    def load(file_name):
-        pass
+    def load(self,file_name):
+        with open("tester.txt","r") as sf:
+            lines = sf.readlines()
+            data = []
+            temp = []
+            # sort the file data into a list, using "\n" as a splitter
+            for line in lines:
+                if line == "\n":
+                    data.append(temp)
+                    temp = []
+                    continue
+                temp.append(line)
+            del temp
+        # separate elements of the list into 2D np arrays
+        for li in data:
+            list_length = len(li)
+            strrow = "".join(li).translate(str.maketrans("","","[\n]"))         # remove characters "[", "]", and "\n" 
+            array = np.array([np.fromstring(strrow,sep=" ")])                   # turn the massive string into a 1D list
+            array = array.reshape(list_length,int(array.shape[1]/list_length))  # Turn the 1D array into a 2D array using number of lines for dimentions
+            
 
 class generation:
     def __init__(self,size,network):
@@ -174,7 +202,7 @@ for i in X:
         y.append(1)
 y = np.array(y)
 
-print(X,X.shape,y,y.shape,sep="\n\n"); #exit() # Use to check on X and y
+#print(X,X.shape,y,y.shape,sep="\n\n"); exit() # Use to check on X and y
 
 options = ["Mostly white", "equally black and white", "mostly black"] 
 
@@ -209,7 +237,7 @@ while NN.lowest_loss > 1.01e-07 and i < 100000: #figure out how to implement thi
     accuracy = np.mean(predictions==y)
 
     if loss < NN.lowest_loss:
-        print(f"new set of weights found, iteration:{i} loss:{loss} acc:{accuracy}\r")
+        print(f"new set of weights found, iteration:{i} loss:{loss} acc:{accuracy}",end=f"{" "*50}\r")
         best_layer1_weights = NN.layers[0].weights.copy()
         best_layer1_biases  = NN.layers[0].biases.copy()
         best_layer2_weights = NN.layers[1].weights.copy()
@@ -226,7 +254,7 @@ while NN.lowest_loss > 1.01e-07 and i < 100000: #figure out how to implement thi
         NN.layers[2].biases  = best_layer3_biases.copy() 
     i+=1
     if i % 20000 == 0:
-        print(f"training...(iteration : {i})",end="\r")
+        print(f"training...(iteration : {i})",end=f"{" "*50}\r")
 
 brk = False
 while True:
@@ -236,6 +264,13 @@ while True:
             usr_input = usr_input + "0"*(num_inputs-len(usr_input))
         if usr_input[:3] == "end":
             break
+        if usr_input[:4] == "save":
+            NN.save("tester.txt")
+            break
+        if usr_input[:4] == "load":
+            NN.load("tester.txt")
+            print(NN.data)
+            break
         nums = list(map(int,list(usr_input)[:num_inputs]))
     except ValueError:
         print("Error: Please enter an integer.\n")
@@ -243,3 +278,4 @@ while True:
 
     NN.activate(nums)
     print(f"Neural network thinks that the number is '{options[NN.best_node]}' (confidence = {NN.confidence}%).")
+NN.save("tester.txt")
