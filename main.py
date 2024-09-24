@@ -1,5 +1,6 @@
 import numpy as np
 from random import randint
+from copy import copy
 class Neural_Network:
     def __init__(self, *, interrupt=None):
         self.loss_function = None
@@ -130,6 +131,7 @@ class Neural_Network:
             for layer in self.layers: # revert all w/b
                 layer.weights = layer.best_weights.copy()
                 layer.biases  = layer.best_biases.copy()
+    
     def save(self,file_name):
         with open(file_name,"w") as sf:
             data = []
@@ -137,6 +139,7 @@ class Neural_Network:
                 data.extend((str(layer.best_weights),"\n\n",str(layer.best_biases),"\n\n"))
             del data[-2:]
             sf.writelines(data)
+
     def load(self,file_name):
         with open("tester.txt","r") as sf:
             lines = sf.readlines()
@@ -151,19 +154,27 @@ class Neural_Network:
                 temp.append(line)
             del temp
         # separate elements of the list into 2D np arrays
+        arrays = []
         for li in data:
             list_length = len(li)
             strrow = "".join(li).translate(str.maketrans("","","[\n]"))         # remove characters "[", "]", and "\n" 
             array = np.array([np.fromstring(strrow,sep=" ")])                   # turn the massive string into a 1D list
             array = array.reshape(list_length,int(array.shape[1]/list_length))  # Turn the 1D array into a 2D array using number of lines for dimentions
-            
-
+            arrays.append(array)
+        for i in range(len(self.layers)):
+            self.layers[i].set_weights(arrays[i*2])
+            self.layers[i].set_biases(arrays[i*2+1])
 class generation:
-    def __init__(self,size,network,*,loss_function=None):
-        self.size = size
+    def __init__(self,network,*,loss_function=None):
         self.network = network
         self.best_generation_weights = [layer.best_weights for layer in network.layers]
         self.best_generation_biases = [layer.best_biases for layer in network.layers]
+        self.loss_function = loss_function
+    def create(self,size):
+        self.size = size
+        self.networks = [copy(self.network for _ in range(size))] # creates a list with shallow copies of the neural network
+    def activate(self):
+        pass
     # calculate loss for all the layers
     # keep the best w/b and assign to all the networks
     # mutate
@@ -265,10 +276,7 @@ while True:
         if usr_input[:4] == "save":
             NN.save("tester.txt")
             break
-        if usr_input[:4] == "load":
-            NN.load("tester.txt")
-            print(NN.data)
-            break
+        
         nums = list(map(int,list(usr_input)[:num_inputs]))
     except ValueError:
         print("Error: Please enter an integer.\n")
