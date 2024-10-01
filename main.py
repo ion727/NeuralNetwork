@@ -3,12 +3,13 @@ from random import randint
 from copy import copy
 class Neural_Network:
     def __init__(self, *, interrupt=None):
-        self.loss_function = None
+        self.loss = None
         #if not callable(interrupt):
         #    raise NameError(f"Neural Network: expected 'inturrupt' function, got {type(interrupt)}")
         self.interrupt = interrupt
         self.lowest_loss = 999999999999
         self.iteration = 0
+    
     class neuron_layer:
         def __init__(self, n_inputs, n_neurons, activation):
             self.best_weights = None
@@ -18,7 +19,6 @@ class Neural_Network:
             self.weights = np.zeros((n_inputs, n_neurons))
             self.biases = np.zeros((1, n_neurons))
             self.activation = activation
-        
         def set_weights(self,weights): # Manually set w/b
             if type(X) != np.ndarray:
                 weights = np.array(X)
@@ -28,7 +28,6 @@ class Neural_Network:
                 raise ValueError(f"set_weights expected array of shape {self.weights.shape}, got {weights.shape}")
             self.weights = weights
             self.best_weights = weights
-            
         def set_biases(self,biases): # Manually set w/b
             if type(X) != np.ndarray:
                 biases = np.array(X)
@@ -82,7 +81,7 @@ class Neural_Network:
             negative_log_probs = -np.log(correct_confidences)
             return negative_log_probs
 
-    def create(self,*args):
+    def create(self,*args): # Creates self.layers
         if len(args) != 2:
             raise ValueError(f"create((layers), (activations)) expected 2 positional arguments, got {len(args)}")
         self.sizes, self.activations = args
@@ -103,7 +102,7 @@ class Neural_Network:
             layer.best_weights = layer.weights.copy()
             layer.best_biases  = layer.biases.copy()
     
-    def activate(self,X):
+    def activate(self,X): #Pass X through the neural network
         if type(X) != np.ndarray:
             X = np.array(X)
         if len(X.shape) == 1:
@@ -118,7 +117,7 @@ class Neural_Network:
         self.confidence = np.floor( max(mailman[0]) * 10000 ) / 100 
         return mailman
     
-    def update(self,loss,*,verbose=False):
+    def update(self,loss,*,verbose=False): # (after mutation) checks if new loss is lower and assigns to best_wb if so. Otherwise, reverts back wb
         self.iteration += 1
         if loss < self.lowest_loss:
             for layer in self.layers: # update all w/b
@@ -132,7 +131,7 @@ class Neural_Network:
                 layer.weights = layer.best_weights.copy()
                 layer.biases  = layer.best_biases.copy()
     
-    def save(self,file_name):
+    def save(self,file_name): # Save wb to file_name
         with open(file_name,"w") as sf:
             data = []
             for layer in NN.layers:
@@ -140,8 +139,8 @@ class Neural_Network:
             del data[-2:]
             sf.writelines(data)
 
-    def load(self,file_name):
-        with open("tester.txt","r") as sf:
+    def load(self,file_name): # Load wb from file_name
+        with open(file_name,"r") as sf:
             lines = sf.readlines()
             data = []
             temp = []
@@ -164,22 +163,51 @@ class Neural_Network:
         for i in range(len(self.layers)):
             self.layers[i].set_weights(arrays[i*2])
             self.layers[i].set_biases(arrays[i*2+1])
+
 class generation:
     def __init__(self,network,*,loss_function=None):
         self.network = network
         self.best_generation_weights = [layer.best_weights for layer in network.layers]
         self.best_generation_biases = [layer.best_biases for layer in network.layers]
         self.loss_function = loss_function
-    def create(self,size):
+
+    def create_generation(self,size):
         self.size = size
         self.networks = [copy(self.network for _ in range(size))] # creates a list with shallow copies of the neural network
-    def activate(self):
+    
+    def activate_generation(self,X):
+        self.outputs = [network.activate(X) for network in self.networks]
+        return self.outputs
+    
+    def get_best_wb(self): # Returns (best_gen_w, best_gen_b). Use *get_best_wb() when passing into another function.
+        lowest_loss = self.networks[0].loss
+        best_network_index = 0
+        for index, network in enumerate(self.networks):
+            if network.loss < lowest_loss:
+                self.generation_lowest_loss = network.loss
+                best_network_index = index
+        self.best_generation_weights = [layer.best_weights for layer in self.networks[best_network_index].layers]
+        self.best_generation_biases = [layer.best_biases for layer in self.networks[best_network_index].layers]
+        return self.best_generation_weights, self.best_generation_biases
+    
+    def keep_best(self):
         pass
-    # calculate loss for all the layers
-    # keep the best w/b and assign to all the networks
-    # mutate
-    # r&r
+        # Copy the best network self.size times into a list using copy(), then assign it to self.networks
+    
+    def mutate_generation(self):
+        pass
+        # Randomly change w/b
+        # keep network at index 0 untouched.
+    
+    # TD list:
+        # Ensure the generation loss is not dependant on previous activations
+        # Complete keep_best
+        # Complete mutation
+        # Test out save/load
+        # Test out generation
 
+
+    
 #================================================================================================================================
 # defining variables/parameters
 while True:
