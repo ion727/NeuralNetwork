@@ -15,8 +15,8 @@ A Python tool to build neural networks.
 ### NN = pynn.Neural_Network()
 `NN.create(layers, activations)`
 
-`layers` : tuple containing the sizes of layers--eg `(3,4,4,3)`
-`activations` : tuple containing either instances of the activation functions, or tuple of integers representing the id of each function.
+- `layers` : tuple containing the sizes of layers--eg `(3,4,4,3)`
+- `activations` : tuple containing either instances of the activation functions, or tuple of integers representing the id of each function.
 
 Assigns each created layer to the `NN.layers` list & initialises many instance variables. Call this method before any other.
 
