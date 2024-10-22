@@ -215,13 +215,11 @@ class generation():
     """_summary_
     Creates a population of neural networks, useful for evolutionary algorithms.
     """
-    
-    def __init__(self,network:Neural_Network,size:int,*,loss_function=None):
+    def __init__(self,network:Neural_Network,size:int):
         self.network = network
         self.generation_lowest_loss = network.lowest_loss
         self.best_generation_weights = [layer.best_weights for layer in network.layers]
         self.best_generation_biases = [layer.best_biases for layer in network.layers]
-        self.loss_function = loss_function
         self.size = size
         self.copy_network(network, size)
 
