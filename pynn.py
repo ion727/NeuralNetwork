@@ -26,7 +26,7 @@ class activations:
     
 class loss_func:
     def calculate(self, output, y):
-        sample_losses = self.forward(output,y)  # type: ignore
+        sample_losses = self.forward(output,y)  
         data_loss = np.mean(sample_losses)
         self.loss = float(data_loss)
         return float(data_loss)
@@ -196,9 +196,9 @@ class Neural_Network:
             sf.write(f"{gen_size}\n{loss}\n{activation_ids}\n")
             
             for layer in self.layers:
-                weights_str = np.array2string(layer.best_weights, separator=', ', max_line_width=np.inf) # type: ignore
-                biases_str = np.array2string(layer.best_biases, separator=', ', max_line_width=np.inf) # type: ignore
-            sf.write(f"{weights_str}\n\n{biases_str}\n\n")    # type: ignore
+                weights_str = np.array2string(layer.best_weights, separator=', ', max_line_width=np.inf) 
+                biases_str = np.array2string(layer.best_biases, separator=', ', max_line_width=np.inf) 
+                sf.write(f"{weights_str}\n\n{biases_str}\n\n")    
 
     def mutate(self):
         for layer in self.layers:
