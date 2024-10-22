@@ -253,9 +253,10 @@ class generation():
             
             for i in range(1,len(networks)): # (1, x) so that the main network is preserved
                 cumulative_prob = 0.0
+                selected = random()
                 for k,prob in enumerate(probabilities):
                     cumulative_prob += prob
-                    if random() <= cumulative_prob:
+                    if selected <= cumulative_prob:
                         best_networks[i] = deepcopy(networks[k])
                         break
             
