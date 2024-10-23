@@ -233,25 +233,26 @@ class generation():
         self.outputs = [network.activate(X) for network in self.networks]
         return self.outputs
     
-    def get_best(self):  # Returns (best_gen_w, best_gen_b) by default and if specified the best network and its loss.
+    def get_best(self,*, get_loss=False):  # Returns (best_gen_w, best_gen_b) by default and if specified the best network and its loss.
         networks = deepcopy(self.networks)
         networks.sort(key=lambda x: x.loss)
-        
-        self.generation_lowest_loss = min(networks[0].loss, self.generation_lowest_loss)
-        return networks
+        if get_loss is True:
+            return networks[0].loss
+        else:
+            self.generation_lowest_loss = min(networks[0].loss, self.generation_lowest_loss)
+            return networks
     
     def repopulate(self,networks=None):
         if type(networks) is None:
             networks = self.networks
         if type(networks) is list and all(type(i) is Neural_Network for i in networks):
-            
+            networks.sort(key=lambda x: x.loss)
             total_loss = sum(network.loss for network in networks)
             probabilities = [network.loss/total_loss for network in networks]
             probabilities[-1] = 1
-            best_networks = [networks[0] for _ in range(len(networks))] # ensures the main network is preserved
-            
-            
-            for i in range(1,len(networks)): # (1, x) so that the main network is preserved
+            best_networks = deepcopy(networks)
+            n = min(5,len(networks)-1)
+            for i in range(n,len(networks)): # (n, x) so that the main n networks are preserved
                 cumulative_prob = 0.0
                 selected = random()
                 for k,prob in enumerate(probabilities):
@@ -259,10 +260,10 @@ class generation():
                     if selected <= cumulative_prob:
                         best_networks[i] = deepcopy(networks[k])
                         break
-            
             self.networks = best_networks
+            del best_networks
         else: 
-            raise ValueError(f'generation.repopulate: "networks" argument expected list[int], got {type(networks)}:\n{[type(i) for i in networks]}')
+            raise ValueError(f'generation.repopulate: "networks" argument expected list[int], got {type(networks)} of:\n{[type(i) for i in networks]}')
             
     
     def mutate_gen(self,limit):
@@ -270,7 +271,7 @@ class generation():
             for layer in self.networks[0]:
                 layer.mutate(limit)
         else:
-            for network in self.networks[1:]:   # index [1:] so that the og network is left untouched.
+            for network in self.networks[:]:
                 for layer in network.layers:
                     layer.mutate()
         return self.networks
