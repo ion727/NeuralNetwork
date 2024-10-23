@@ -166,7 +166,7 @@ class Neural_Network:
         self.confidence = round(max(mailman[0]),2)
         return mailman # returns the output
     
-    def update(self,*,loss,verbose=False): # (use after mutation) checks if new loss is lower and assigns to best_wb if so. Otherwise, reverts back wb
+    def update(self,loss,*,verbose=False): # (use after mutation) checks if new loss is lower and assigns to best_wb if so. Otherwise, reverts back wb
         if loss is None:
             loss = self.loss
         if not (type(loss) in (float,int)):
@@ -200,9 +200,9 @@ class Neural_Network:
                 biases_str = np.array2string(layer.best_biases, separator=', ', max_line_width=np.inf) 
                 sf.write(f"{weights_str}\n\n{biases_str}\n\n")    
 
-    def mutate(self):
+    def mutate(self,limit):
         for layer in self.layers:
-            layer.mutate()
+            layer.mutate(limit)
         return self
     
     def clone(self):
