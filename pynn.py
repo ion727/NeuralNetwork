@@ -285,12 +285,12 @@ class generation():
     
 def load(file_name) -> generation:
     with open(file_name, "r") as sf:
-        lines = sf.readlines()
+        lines = sf.readlines() # remove the two trailing whitespace lines
         size = int(lines[0].strip())
         loss = float(lines[1].strip())
         activation_ids = list(map(int, lines[2].strip()))
         weight_bias_data = lines[3:]
-    raw_data = ''.join(weight_bias_data).split('\n\n')
+    raw_data = ''.join(weight_bias_data).split('\n\n')[:-1]
     arrays = []
     for raw in raw_data:
         arrays.append(np.array(eval(raw)))
