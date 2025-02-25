@@ -189,6 +189,10 @@ class Neural_Network:
         return self
     
     def save(self,file_name,*,gen_size=1,loss=None): # Save wb to file_name
+        if file_name is None:
+            return
+        elif type(file_name) != str:
+            raise ValueError(f"Filename error: expected str or None, got {type(file_name)}")
         if loss is None:
             loss = self.lowest_loss
         with open(file_name,"w") as sf:
