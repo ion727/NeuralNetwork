@@ -1,6 +1,7 @@
 # Neural Network Evolutionary Algorithm
 This repository contains an implementation of a simple neural network model designed for evolutionary algorithms. It includes various classes and functions for defining and manipulating neural networks, activation functions, loss functions, mutation logic, and population management for evolutionary approaches. Below is a list of all the available classes and functions in the Python file.
-
+# Credit
+Foundation and base for this project can be found [here](https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3)
 # Table of Contents
 - [Classes](https://github.com/ion727/NeuralNetwork/?tab=readme-ov-file#Classes)
 - [activations](https://github.com/ion727/NeuralNetwork/?tab=readme-ov-file#activations)
